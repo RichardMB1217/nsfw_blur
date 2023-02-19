@@ -22,13 +22,16 @@ image = Image.open(image_path)
 # Blur the NSFW parts of the image using the bounding box coordinates
 for detection in nsfw_data['detections']:
     bbox = detection['bounding_box']
-    # Check the order of the bounding box coordinates and swap if necessary
-    if bbox[0] > bbox[2]:
-        bbox[0], bbox[2] = bbox[2], bbox[0]
-    if bbox[1] > bbox[3]:
-        bbox[1], bbox[3] = bbox[3], bbox[1]
-    # Convert bounding box pixel coordinates to integer values
-    bbox = [int(coord) for coord in bbox]
+    # Convert bounding box pixel coordinates to percentages of image size
+    width, height = image.size
+    bbox = [
+        bbox[0] / width, 
+        bbox[1] / height, 
+        (bbox[0] + bbox[2]) / width, 
+        (bbox[1] + bbox[3]) / height
+    ]
+    # Convert percentages of image size to pixel coordinates
+    bbox = [coord * size for coord, size in zip(bbox, image.size)]
     # Crop the NSFW part of the image using the bounding box
     nsfw_part = image.crop(bbox)
     # Blur the cropped NSFW part of the image
